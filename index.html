@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        #markdown-output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #fff;
+            overflow: auto;
+        }
+        #loading {
+            display: none;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/highlight.js"></script>
+</head>
+<body>
+
+<h1>Markdown to HTML Converter</h1>
+<div id="loading">Processing...</div>
+<div id="markdown-output"></div>
+
+<input type="file" id="file-input" accept=".md" />
+<button id="convert-button">Convert</button>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const outputDiv = document.getElementById("markdown-output");
+        const loadingDiv = document.getElementById("loading");
+        const fileInput = document.getElementById("file-input");
+        const convertButton = document.getElementById("convert-button");
+
+        // Function to read the markdown file and convert it to HTML
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const markdownText = event.target.result;
+                convertMarkdownToHTML(markdownText);
+            };
+            reader.readAsText(file);
+        }
+
+        // Function to convert markdown to HTML and render it
+        function convertMarkdownToHTML(markdown) {
+            loadingDiv.style.display = "block";
+            outputDiv.innerHTML = ""; // Clear previous output
+
+            try {
+                const htmlContent = marked(markdown);
+                outputDiv.innerHTML = htmlContent;
+                hljs.highlightAll(); // Highlight code blocks
+            } catch (error) {
+                outputDiv.innerHTML = "<p>Error processing markdown: " + error.message + "</p>";
+            } finally {
+                loadingDiv.style.display = "none";
+            }
+        }
+
+        // Load the default input.md file on page load
+        fetch('input.md')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(markdownText => {
+                convertMarkdownToHTML(markdownText);
+            })
+            .catch(error => {
+                outputDiv.innerHTML = "<p>Error loading default markdown file: " + error.message + "</p>";
+            });
+
+        // Event listener for file input
+        convertButton.addEventListener("click", function() {
+            const file = fileInput.files[0];
+            if (file) {
+                readFile(file);
+            } else {
+                alert("Please select a markdown file to convert.");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
